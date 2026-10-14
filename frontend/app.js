@@ -12,24 +12,18 @@ const btnCancelar = document.getElementById("btnCancelar");
 const tituloFormulario = document.getElementById("tituloFormulario");
 const formContacto = document.getElementById("formularioContacto");
 
-// 1. Consultar y mostrar productos (READ)
+// 1. Función para consultar los productos y mostrarlos en el DOM (READ)
 async function cargarProductos() {
   if (!listaProductos) return;
 
   try {
     const respuesta = await fetch(`${API_URL}/productos`);
-
-    if (!respuesta.ok) {
-      throw new Error("Error al consultar los productos");
-    }
-
     const productos = await respuesta.json();
 
     listaProductos.innerHTML = "";
 
     if (productos.length === 0) {
-      listaProductos.innerHTML =
-        "<p style='color: #64748b;'>No hay productos registrados.</p>";
+      listaProductos.innerHTML = "<p style='color: #64748b;'>No hay productos registrados.</p>";
       return;
     }
 
@@ -37,56 +31,26 @@ async function cargarProductos() {
       const elemento = document.createElement("div");
       elemento.classList.add("producto");
 
-      const informacion = document.createElement("div");
+      elemento.innerHTML = `
+        <div>
+          <h3>${producto.nombre}</h3>
+          <p class="producto-precio">Precio: $${producto.precio}</p>
+          <p>Stock: ${producto.stok} unidades</p>
+        </div>
+        <div class="acciones">
+          <button class="btn-editar" onclick="cargarEnFormulario(${producto.id}, '${producto.nombre}', ${producto.precio}, ${producto.stok})">Editar</button>
+          <button class="btn-eliminar" onclick="eliminarProducto(${producto.id})">Eliminar</button>
+        </div>
+      `;
 
-      const titulo = document.createElement("h3");
-      titulo.textContent = producto.nombre;
-
-      const precio = document.createElement("p");
-      precio.classList.add("producto-precio");
-      precio.textContent = `Precio: $${producto.precio}`;
-
-      const stock = document.createElement("p");
-      stock.textContent = `Stock: ${producto.stok} unidades`;
-
-      informacion.append(titulo, precio, stock);
-
-      const acciones = document.createElement("div");
-      acciones.classList.add("acciones");
-
-      const btnEditar = document.createElement("button");
-      btnEditar.classList.add("btn-editar");
-      btnEditar.textContent = "Editar";
-
-      btnEditar.addEventListener("click", () => {
-        cargarEnFormulario(
-          producto.id,
-          producto.nombre,
-          producto.precio,
-          producto.stok
-        );
-      });
-
-      const btnEliminar = document.createElement("button");
-      btnEliminar.classList.add("btn-eliminar");
-      btnEliminar.textContent = "Eliminar";
-
-      btnEliminar.addEventListener("click", () => {
-        eliminarProducto(producto.id);
-      });
-
-      acciones.append(btnEditar, btnEliminar);
-      elemento.append(informacion, acciones);
       listaProductos.appendChild(elemento);
     });
   } catch (error) {
     console.error("Error al cargar productos:", error);
-    listaProductos.innerHTML =
-      "<p>No se pudieron cargar los productos.</p>";
   }
 }
 
-// 2. Cargar producto en el formulario (UPDATE)
+// 2. Cargar datos del producto en el formulario para editar (UPDATE - Paso 1)
 function cargarEnFormulario(id, nombre, precio, stok) {
   productoId.value = id;
   nombreInput.value = nombre;
@@ -96,17 +60,13 @@ function cargarEnFormulario(id, nombre, precio, stok) {
   tituloFormulario.textContent = "Editar Producto";
   btnGuardar.textContent = "Actualizar Producto";
   btnCancelar.style.display = "block";
-
   nombreInput.focus();
 }
 
 // Cancelar edición y restaurar formulario
 function cancelarEdicion() {
-  if (!formulario) return;
-
   formulario.reset();
   productoId.value = "";
-
   tituloFormulario.textContent = "Registrar Producto";
   btnGuardar.textContent = "Guardar Producto";
   btnCancelar.style.display = "none";
@@ -116,107 +76,70 @@ if (btnCancelar) {
   btnCancelar.addEventListener("click", cancelarEdicion);
 }
 
-// 3. Registrar o actualizar producto (CREATE / UPDATE)
+// 3. Guardar o Actualizar según si hay un ID seleccionado (CREATE o UPDATE)
 if (formulario) {
   formulario.addEventListener("submit", async (event) => {
-    event.preventDefault();
+    event.preventDefault(); // Evitar que la página se recargue
 
     const id = productoId.value;
-    const nombre = nombreInput.value.trim();
-    const precio = Number(precioInput.value);
-    const stok = Number(stockInput.value);
-
-    if (
-      !nombre ||
-      precioInput.value === "" ||
-      stockInput.value === "" ||
-      !Number.isFinite(precio) ||
-      !Number.isFinite(stok) ||
-      precio < 0 ||
-      stok < 0
-    ) {
-      alert("Ingresa un nombre, precio y stock válidos.");
-      return;
-    }
+    const nombre = nombreInput.value;
+    const precio = precioInput.value;
+    const stok = stockInput.value;
 
     try {
-      const url = id
-        ? `${API_URL}/productos/${id}`
-        : `${API_URL}/productos`;
-
-      const metodo = id ? "PUT" : "POST";
-
-      const respuesta = await fetch(url, {
-        method: metodo,
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          nombre,
-          precio,
-          stok,
-        }),
-      });
-
-      if (!respuesta.ok) {
-        throw new Error(
-          `Error al guardar el producto: ${respuesta.status}`
-        );
+      if (id) {
+        // MODO ACTUALIZAR (PUT)
+        await fetch(`${API_URL}/productos/${id}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre, precio, stok }),
+        });
+      } else {
+        // MODO CREAR (POST)
+        await fetch(`${API_URL}/productos`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ nombre, precio, stok }),
+        });
       }
 
-      cancelarEdicion();
-      await cargarProductos();
-
-      alert(
-        id
-          ? "Producto actualizado correctamente."
-          : "Producto registrado correctamente."
-      );
+      cancelarEdicion(); // Limpiar formulario y restaurar botones
+      cargarProductos(); // Refrescar la lista en pantalla
     } catch (error) {
       console.error("Error al guardar el producto:", error);
-      alert("No se pudo guardar el producto. Verifica el servidor.");
     }
   });
 }
 
-// 4. Eliminar producto (DELETE)
+// 4. Eliminar un producto (DELETE)
 async function eliminarProducto(id) {
-  const confirmar = confirm(
-    "¿Deseas eliminar este producto de la base de datos?"
-  );
-
+  const confirmar = confirm("¿Deseas eliminar este producto de la base de datos?");
   if (!confirmar) return;
 
   try {
-    const respuesta = await fetch(`${API_URL}/productos/${id}`, {
+    await fetch(`${API_URL}/productos/${id}`, {
       method: "DELETE",
     });
 
-    if (!respuesta.ok) {
-      throw new Error("Error al eliminar el producto");
-    }
-
+    // Si estábamos editando ese mismo producto, cancelamos la edición
     if (productoId.value == id) {
       cancelarEdicion();
     }
 
-    await cargarProductos();
-    alert("Producto eliminado correctamente.");
+    cargarProductos(); // Refrescar la lista en pantalla
   } catch (error) {
     console.error("Error al eliminar producto:", error);
-    alert("No se pudo eliminar el producto.");
   }
 }
 
-// 5. Formulario de contacto
+// 5. Formulario de contacto (demostrativo en contacto.html)
 if (formContacto) {
-  formContacto.addEventListener("submit", (event) => {
-    event.preventDefault();
-
+  formContacto.addEventListener("submit", (e) => {
+    e.preventDefault();
     alert("¡Mensaje de contacto enviado con éxito!");
     formContacto.reset();
   });
 }
 
-// 6. Cargar productos al iniciar
+// Llamado inicial al cargar la página
 cargarProductos();

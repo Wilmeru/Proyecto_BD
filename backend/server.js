@@ -29,11 +29,11 @@ app.get("/productos", (req, res) => {
 
 // 2. Crear un nuevo producto (CREATE)
 app.post("/productos", (req, res) => {
-  const { nombre, precio, stock } = req.body;
+  const { nombre, precio, stok } = req.body;
 
   // Consulta parametrizada con '?' para prevenir inyección SQL
-  const sql = "INSERT INTO productos (nombre, precio, stock) VALUES (?, ?, ?)";
-  const valores = [nombre, precio, stock];
+  const sql = "INSERT INTO productos (nombre, precio, stok) VALUES (?, ?, ?)";
+  const valores = [nombre, precio, stok];
 
   conexion.query(sql, valores, (error, resultado) => {
     if (error) {
@@ -51,10 +51,10 @@ app.post("/productos", (req, res) => {
 // 3. Actualizar un producto existente (UPDATE)
 app.put("/productos/:id", (req, res) => {
   const id = req.params.id;
-  const { nombre, precio, stock } = req.body;
+  const { nombre, precio, stok } = req.body;
 
-  const sql = "UPDATE productos SET nombre = ?, precio = ?, stock = ? WHERE id = ?";
-  const valores = [nombre, precio, stock, id];
+  const sql = "UPDATE productos SET nombre = ?, precio = ?, stok = ? WHERE id = ?";
+  const valores = [nombre, precio, stok, id];
 
   conexion.query(sql, valores, (error, resultado) => {
     if (error) {
@@ -82,4 +82,85 @@ app.delete("/productos/:id", (req, res) => {
 // Iniciar servidor en el puerto 3000
 app.listen(3000, () => {
   console.log(" Servidor ejecutándose en http://localhost:3000");
+});
+
+
+
+
+
+// Contactos
+
+
+// 1. Obtener todos los productos (READ)
+app.get("/contactos", (req, res) => {
+  const sql = "SELECT * FROM contactos";
+
+  conexion.query(sql, (error, resultados) => {
+    if (error) {
+      console.error("Error al consultar:", error);
+      return res.status(500).json({ mensaje: "Error al consultar los mensajes" });
+    }
+    // Retornamos el array de productos como JSON al cliente
+    res.json(resultados);
+  });
+});
+
+
+// 2. Crear un nuevo producto (CREATE)
+app.post("/contactos", (req, res) => {
+  const { nombre, correo, asunto, mensaje } = req.body;
+
+  // Consulta parametrizada con '?' para prevenir inyección SQL
+  const sql = "INSERT INTO contactos (nombre, correo, asunto, mensaje, fecha) VALUES (?, ?, ?, ?, CURDATE())";
+  const valores = [nombre, correo, asunto, mensaje];
+
+  conexion.query(sql, valores, (error, resultado) => {
+    if (error) {
+      console.error("Error al insertar:", error);
+      return res.status(500).json({ mensaje: "Error al crear el producto" });
+    }
+
+    res.status(201).json({
+      mensaje: "Producto creado correctamente",
+      id: resultado.insertId,
+    });
+  });
+});
+
+
+
+
+// 3. Actualizar un producto existente (UPDATE)
+app.put("/contactos/:id", (req, res) => {
+  const id = req.params.id;
+  const { nombre, correo, asunto, mensaje } = req.body;
+
+  const sql = "UPDATE contactos SET nombre = ?, correo = ?, asunto = ?, mensaje = ?, fecha = CURDATE() WHERE id = ?";
+  const valores = [nombre, correo, asunto, mensaje, id];
+
+  conexion.query(sql, valores, (error, resultado) => {
+    if (error) {
+      console.error("Error al actualizar:", error);
+      return res.status(500).json({ mensaje: "Error al actualizar el mensaje" });
+    }
+    res.json({ mensaje: "Mensaje actualizado correctamente" });
+  });
+});
+
+
+
+
+
+// 4. Eliminar un producto (DELETE)
+app.delete("/contactos/:id", (req, res) => {
+  const id = req.params.id;
+  const sql = "DELETE FROM contactos WHERE id = ?";
+
+  conexion.query(sql, [id], (error, resultado) => {
+    if (error) {
+      console.error("Error al eliminar:", error);
+      return res.status(500).json({ mensaje: "Error al eliminar el producto" });
+    }
+    res.json({ mensaje: "Mensaje eliminado correctamente" });
+  });
 });
