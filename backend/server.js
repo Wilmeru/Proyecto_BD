@@ -91,7 +91,7 @@ app.listen(PORT, () => {
 
 
 
-// -------------Contactos-----------
+// ---------------Contactos-----------
 
 // 1. Obtener todos los productos (READ)
 app.get("/contactos", (req, res) => {

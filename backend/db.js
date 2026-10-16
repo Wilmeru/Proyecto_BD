@@ -3,16 +3,11 @@ const mysql = require('mysql2');
 
 //Configuracion de la conexion de la BD
 
-const host = process.env.DB_HOST || "localhost";
-const esLocal = host === "localhost" || host === "127.0.0.1";
-const port = Number(process.env.DB_PORT) || (esLocal ? 33006 : 4000);
-const user = process.env.DB_USER || process.env.DB_USER || (esLocal ? "root" : "");
-const password = process.env.DB_PASSWORD || process.env.BD_PASSWORD || "";
-const database = process.env.DB_NAME || process.env.BD_NAME || "tienda";
-
-if (!user) {
-    throw new Error("Falta DB_USER: configura el usuario completo de TiDB Cloud en las variables de entorno.");
-}
+ const host = process.env.DB_HOST  || "localhost";
+ const port =  Number (process.env.DB_PORT) || 33006;
+ const user = process.env.BD_USER || "root";
+ const password = process.env.BD_PASSWORD || "";
+ const database = process.env.BD_NAME || "tienda";
 
 // OPciones de configuracion
 const configuracion = {
@@ -24,7 +19,7 @@ const configuracion = {
 };
 
 // Si el host es remoto (TiDB Cloud), habilitar el SSL automaticamente
-if (!esLocal){
+if (host !== "localhost" && host !== "127.0.0.1"){
     configuracion.ssl = {
         minVersion: "TLSv1.2",
         rejectUnauthorized: true,
