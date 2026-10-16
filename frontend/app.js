@@ -87,26 +87,33 @@ if (formulario) {
     const stock = stockInput.value;
 
     try {
+      let respuesta;
       if (id) {
         // MODO ACTUALIZAR (PUT)
-        await fetch(`${API_URL}/productos/${id}`, {
+        respuesta = await fetch(`${API_URL}/productos/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ nombre, precio, stock }),
         });
       } else {
         // MODO CREAR (POST)
-        await fetch(`${API_URL}/productos`, {
+        respuesta = await fetch(`${API_URL}/productos`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ nombre, precio, stock }),
         });
       }
 
+      if (!respuesta.ok) {
+        const detalle = await respuesta.json().catch(() => null);
+        throw new Error(detalle?.mensaje || `Error del servidor: ${respuesta.status}`);
+      }
+
       cancelarEdicion(); // Limpiar formulario y restaurar botones
-      cargarProductos(); // Refrescar la lista en pantalla
+      await cargarProductos(); // Refrescar la lista en pantalla
     } catch (error) {
       console.error("Error al guardar el producto:", error);
+      alert(`No se pudo guardar el producto: ${error.message}`);
     }
   });
 }
