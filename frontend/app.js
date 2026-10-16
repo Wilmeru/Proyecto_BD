@@ -35,10 +35,10 @@ async function cargarProductos() {
         <div>
           <h3>${producto.nombre}</h3>
           <p class="producto-precio">Precio: $${producto.precio}</p>
-          <p>Stock: ${producto.stok} unidades</p>
+          <p>Stock: ${producto.stock} unidades</p>
         </div>
         <div class="acciones">
-          <button class="btn-editar" onclick="cargarEnFormulario(${producto.id}, '${producto.nombre}', ${producto.precio}, ${producto.stok})">Editar</button>
+          <button class="btn-editar" onclick="cargarEnFormulario(${producto.id}, '${producto.nombre}', ${producto.precio}, ${producto.stock})">Editar</button>
           <button class="btn-eliminar" onclick="eliminarProducto(${producto.id})">Eliminar</button>
         </div>
       `;
@@ -51,11 +51,11 @@ async function cargarProductos() {
 }
 
 // 2. Cargar datos del producto en el formulario para editar (UPDATE - Paso 1)
-function cargarEnFormulario(id, nombre, precio, stok) {
+function cargarEnFormulario(id, nombre, precio, stock) {
   productoId.value = id;
   nombreInput.value = nombre;
   precioInput.value = precio;
-  stockInput.value = stok;
+  stockInput.value = stock;
 
   tituloFormulario.textContent = "Editar Producto";
   btnGuardar.textContent = "Actualizar Producto";
@@ -84,7 +84,7 @@ if (formulario) {
     const id = productoId.value;
     const nombre = nombreInput.value;
     const precio = precioInput.value;
-    const stok = stockInput.value;
+    const stock = stockInput.value;
 
     try {
       if (id) {
@@ -92,14 +92,14 @@ if (formulario) {
         await fetch(`${API_URL}/productos/${id}`, {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nombre, precio, stok }),
+          body: JSON.stringify({ nombre, precio, stock }),
         });
       } else {
         // MODO CREAR (POST)
         await fetch(`${API_URL}/productos`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ nombre, precio, stok }),
+          body: JSON.stringify({ nombre, precio, stock }),
         });
       }
 

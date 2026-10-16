@@ -30,11 +30,11 @@ app.get("/productos", (req, res) => {
 
 // 2. Crear un nuevo producto (CREATE)
 app.post("/productos", (req, res) => {
-  const { nombre, precio, stok } = req.body;
+  const { nombre, precio, stock } = req.body;
 
   // Consulta parametrizada con '?' para prevenir inyección SQL
-  const sql = "INSERT INTO productos (nombre, precio, stok) VALUES (?, ?, ?)";
-  const valores = [nombre, precio, stok];
+  const sql = "INSERT INTO productos (nombre, precio, stock) VALUES (?, ?, ?)";
+  const valores = [nombre, precio, stock];
 
   conexion.query(sql, valores, (error, resultado) => {
     if (error) {
@@ -52,10 +52,10 @@ app.post("/productos", (req, res) => {
 // 3. Actualizar un producto existente (UPDATE)
 app.put("/productos/:id", (req, res) => {
   const id = req.params.id;
-  const { nombre, precio, stok } = req.body;
+  const { nombre, precio, stock } = req.body;
 
-  const sql = "UPDATE productos SET nombre = ?, precio = ?, stok = ? WHERE id = ?";
-  const valores = [nombre, precio, stok, id];
+  const sql = "UPDATE productos SET nombre = ?, precio = ?, stock = ? WHERE id = ?";
+  const valores = [nombre, precio, stock, id];
 
   conexion.query(sql, valores, (error, resultado) => {
     if (error) {
